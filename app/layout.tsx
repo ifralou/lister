@@ -1,15 +1,10 @@
 import './globals.css'
-
 export const metadata = {
-  title: 'Next.js and Supabase Starter Kit',
-  description: 'The fastest way to build apps with Next.js and Supabase',
+  title: 'Lister',
+  description: 'Simple way to create and share your tasks.',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: LayoutProps) {
   return (
     <html lang="en">
       <body className="bg-background text-foreground">
