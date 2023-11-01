@@ -1,8 +1,7 @@
 import React from 'react';
-import {Icon} from "next/dist/lib/metadata/types/metadata-types";
 
 type AppListItemProps = {
-    icon: Icon,
+    icon: any,
     label: string,
     count: number,
     isActive: boolean
@@ -19,8 +18,10 @@ const AppListItem = (
         relative
         `}>
             {isActive && <ActiveMark/>}
-            {/*icon here*/}
-            <h3 className="ml-2">{label}</h3>
+            {icon}
+            <h3 className="ml-2">
+                {label}
+            </h3>
             <div>{count}</div>
         </li>
     );

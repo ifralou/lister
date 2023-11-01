@@ -2,29 +2,20 @@
 
 import React from "react";
 import AppListItem from "@/app/ui/dashboard/applists/AppListItem";
-import {IconKeys} from "next/dist/lib/metadata/constants";
+import SunIcon from "@/app/assets/SunIcon";
 
 const AppListItems = [
-    {label: "My Day", icon: null },
-    {label: "Important", icon: null },
-    {label: "Planned", icon: null},
-    {label: "Assigned", icon: null},
-    {label: "Tasks", icon: null},
+    {label: "My Day", icon: <SunIcon/>},
+    {label: "Important", icon: <SunIcon/>},
+    {label: "Planned", icon: <SunIcon/>},
+    {label: "Assigned", icon: <SunIcon/>},
+    {label: "Tasks", icon: <SunIcon/>},
 ]
 
-const Navigation = () => {
+const ListsPanel = () => {
     const activeTab = "myday";
     return (
         <article className="w-full">
-
-            <div className="p-2 bg-gray-900">
-                <img/>
-                <div>
-                    <h2>name</h2>
-                    <p>surname</p>
-                </div>
-            </div>
-
             <div>
                 {
                     AppListItems.map(({label, icon}) =>
@@ -32,9 +23,11 @@ const Navigation = () => {
                     )
                 }
             </div>
+            <div>
 
+            </div>
         </article>
     );
 };
 
-export default Navigation;
+export default ListsPanel;
