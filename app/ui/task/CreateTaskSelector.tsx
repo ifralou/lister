@@ -1,11 +1,12 @@
-import React, {ChangeEventHandler} from 'react';
+import React, {ChangeEventHandler, ReactNode} from 'react';
 
 type CreateTaskSelectorProps = {
     options: string[],
+    icon: any,
     onChange: ChangeEventHandler<HTMLSelectElement>
 }
 const CreateTaskSelector = (
-    {options, onChange} : CreateTaskSelectorProps
+    {icon, options, onChange} : CreateTaskSelectorProps
 ) => {
     return (
         <div>

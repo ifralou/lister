@@ -16,6 +16,7 @@ const ListsPanel = () => {
     const activeTab = "myday";
     return (
         <article className="w-full">
+
             <div>
                 {
                     AppListItems.map(({label, icon}) =>
@@ -23,9 +24,7 @@ const ListsPanel = () => {
                     )
                 }
             </div>
-            <div>
 
-            </div>
         </article>
     );
 };
