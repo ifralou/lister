@@ -17,8 +17,9 @@ const TaskPanel = ({task, onPanelClose} : TaskPanelProp) => {
     console.log("TaskPanel", task);
 
     return (
-        <Card className={"mx-4"}>
-            <CardHeader className={"flex flex-col"}>
+        <>
+        <Card className={"mx-4 p-2"}>
+            <div className={"flex flex-col"}>
                 <div className={"flex flex-row justify-between items-center"}>
                     <h2 className={"text-xl font-semibold"}>
                         {task.title}
@@ -31,9 +32,12 @@ const TaskPanel = ({task, onPanelClose} : TaskPanelProp) => {
                     }
                     <CreateStep/>
                 </div>
-            </CardHeader>
-
+            </div>
         </Card>
+
+        <Button>Add to My Day</Button>
+
+        </>
     );
 };
 
