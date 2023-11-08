@@ -1,10 +1,10 @@
 import {useState} from "react";
-import CreateTaskActive from "@/app/assets/CreateTaskActive";
-import CreateTaskNonActive from "@/app/assets/CreateTaskNonActive";
 import CreateTaskSelector from "@/app/ui/task/CreateTaskSelector";
 import SunIcon from "@/app/assets/SunIcon";
 import {addTask} from "@/utils/state/queries";
 import {useMutation, useQueryClient} from "react-query";
+import {DropdownItem} from "@nextui-org/react";
+import InputRow from "@/app/ui/InputRow";
 
 type CreateTaskProps = {
     lists: string[]
@@ -43,68 +43,56 @@ const CreateTask = ({lists}: CreateTaskProps) => {
         setTask(initState);
     }
 
-    async function submitOnEnter(e: any) {
-        if(e.key === "Enter") {
-            mutation.mutate();
-        }
-    }
 
-    const isActive = () => task?.title?.length > 0
 
-    return (
-        <div className={`
-        flex justify-between items-center px-2
-        border-2 border-green-500 rounded-xl
-        overflow-hidden
-        ${active ? "bg-gray-500" : "bg-gray-900"}
-       `}
-        >
-            <div className={`flex items-center`}>
-                <div onClick={() => mutation.mutate()}>
-                    {isActive() ? <CreateTaskActive/> : <CreateTaskNonActive/>}
-                </div>
-                <input placeholder={active ? "Example: finish lister" : "Add task"}
-                       onKeyDown={submitOnEnter}
-                       className={"p-2 bg-transparent outline-none"}
-                       value={task.title} onChange={(e) => setTask(p => ({...p, title: e.target.value}))}
-                       onFocus={() => setActive(true)}
-                       onBlur={() => setActive(false)}
-                />
-            </div>
-            {
-                isActive() && <div className={`flex`}>
+    return <InputRow inputValue={task.title}
+                     onInputChange={(e) => setTask(p => ({...p, title: e.target.value}))}
+                     isActive={ task?.title?.length > 0 }
+                     onSubmit={() => mutation.mutate()}
+                     placeholders={{active: "Add task", passive: "Ex: Finish Lister styling"}}
+    >
+        <div className={"flex overflow-hidden min-w-[160px]"}>
+            <CreateTaskSelector icon={<SunIcon/>} label={"Tasks"}>
+                {
+                    ["Tasks", "My day", "Important"].map(task =>
+                        <DropdownItem key={task}>
+                            {task}
+                        </DropdownItem>
+                    )
+                }
+            </CreateTaskSelector>
 
-                    <CreateTaskSelector options={lists}
-                                        icon={<SunIcon/>}
-                                        onChange={(e) => {
-                                            setTask(p => ({...p, list: e.target.value}))
-                                        }}
-                    />
+            <CreateTaskSelector icon={<SunIcon/>}>
+                {
+                    ["Tasks", "My day", "Important"].map(task =>
+                        <DropdownItem key={task}>
+                            {task}
+                        </DropdownItem>
+                    )
+                }
+            </CreateTaskSelector>
 
-                    <CreateTaskSelector options={lists}
-                                        icon={<SunIcon/>}
-                                        onChange={(e) => {
-                                            setTask(p => ({...p, list: e.target.value}))
-                                        }}
-                    />
+            <CreateTaskSelector icon={<SunIcon/>}>
+                {
+                    ["Tasks", "My day", "Important"].map(task =>
+                        <DropdownItem key={task}>
+                            {task}
+                        </DropdownItem>
+                    )
+                }
+            </CreateTaskSelector>
 
-                    <CreateTaskSelector options={lists}
-                                        icon={<SunIcon/>}
-                                        onChange={(e) => {
-                                            setTask(p => ({...p, list: e.target.value}))
-                                        }}
-                    />
-
-                    <CreateTaskSelector options={lists}
-                                        icon={<SunIcon/>}
-                                        onChange={(e) => {
-                                            setTask(p => ({...p, list: e.target.value}))
-                                        }}
-                    />
-                </div>
-            }
+            <CreateTaskSelector icon={<SunIcon/>}>
+                {
+                    ["Tasks", "My day", "Important"].map(task =>
+                        <DropdownItem key={task}>
+                            {task}
+                        </DropdownItem>
+                    )
+                }
+            </CreateTaskSelector>
         </div>
-    );
+    </InputRow>
 };
 
 export default CreateTask;

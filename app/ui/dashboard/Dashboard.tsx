@@ -3,16 +3,16 @@ import {Panel, PanelGroup, PanelResizeHandle} from "react-resizable-panels";
 import ListsPanel from "@/app/ui/dashboard/panels/ListsPanel";
 import MainPanel from "@/app/ui/dashboard/panels/MainPanel";
 import TaskPanel from "@/app/ui/dashboard/panels/TaskPanel";
-import {useMutation, useQuery} from "react-query";
-import {addTask, getTasks} from "@/utils/state/queries";
+import {useQuery} from "react-query";
+import {getTasks} from "@/utils/state/queries";
+import {useState} from "react";
 
 
 const Dashboard = ()=> {
     const { isLoading, error, data } = useQuery(
         'userTasks', getTasks
     );
-
-    console.log(data);
+    const [selectedTask, setSelectedTask] = useState<Set<string>>(new Set());
 
     if(isLoading) {
         return <h1>Loading query...</h1>
@@ -23,22 +23,36 @@ const Dashboard = ()=> {
     }
 
     return (
-        <PanelGroup direction={"horizontal"} className={""}>
-            <Panel defaultSize={20} className={"min-w-[150px] max-w-[300px]"}>
+        <PanelGroup direction={"horizontal"} className={"flex flex-grow"}>
+
+            <Panel defaultSize={20} className={"min-w-[150px] max-w-[300px] flex-grow"}>
                 <ListsPanel/>
             </Panel>
+
             <PanelResizeHandle>
-                <div className="w-1 bg-gray-400 h-full"></div>
+                <div className="w-1 bg-gray-400 h-full flex-grow"></div>
             </PanelResizeHandle>
+
             <Panel defaultSize={55}>
-                <MainPanel tasks={data || []}/>
+                <MainPanel tasks={data || []} onTaskSelection={setSelectedTask} selectedTask={selectedTask}/>
             </Panel>
-            <PanelResizeHandle>
-                <div className="w-1 bg-gray-400 h-full"></div>
-            </PanelResizeHandle>
-            <Panel defaultSize={25}>
-                <TaskPanel/>
-            </Panel>
+
+            {
+                selectedTask && selectedTask.size != 0 &&
+                <>
+
+                <PanelResizeHandle>
+                    <div className="w-1 bg-gray-400 h-full"></div>
+                </PanelResizeHandle>
+
+                <Panel defaultSize={25} className={"min-w-[250px] max-w-[500px]"}>
+                    <TaskPanel task={data?.filter(d => d.id == selectedTask.values().next().value)[0]}
+                               onPanelClose={() => setSelectedTask(new Set())}
+                    />
+                </Panel>
+
+                </>
+            }
         </PanelGroup>
     );
 };

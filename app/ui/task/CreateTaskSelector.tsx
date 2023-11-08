@@ -1,30 +1,29 @@
-import React, {ChangeEventHandler, ReactNode} from 'react';
+import React from 'react';
+import {Button, Dropdown, DropdownMenu, DropdownTrigger} from "@nextui-org/react";
+import {CollectionChildren} from "@react-types/shared";
 
 type CreateTaskSelectorProps = {
-    options: string[],
     icon: any,
-    onChange: ChangeEventHandler<HTMLSelectElement>
+    children: CollectionChildren<any>,
+    label?: string
 }
 const CreateTaskSelector = (
-    {icon, options, onChange} : CreateTaskSelectorProps
+    {icon, children, label} : CreateTaskSelectorProps
 ) => {
     return (
-        <div>
-            <select
-                onChange={onChange}
-                className={`
-                        bg-transparent hover:bg-gray-400
-                        h-10
-                        appearance-none
-                        `}
-                // onFocus={() => setActive(true)}
-                // onBlur={() => setActive(false)}
-            >
-                {
-                    options.map((name) => <option>{name}</option>)
-                }
-            </select>
-        </div>
+        <Dropdown>
+            <DropdownTrigger>
+                <Button size={'sm'} radius={"none"} variant={"light"}
+                        isIconOnly={!label}
+                        className="px-1 py-5 m-0 "
+                >
+                    {icon} {label}
+                </Button>
+            </DropdownTrigger>
+            <DropdownMenu>
+                { children }
+            </DropdownMenu>
+        </Dropdown>
     );
 };
 
