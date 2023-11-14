@@ -2,7 +2,6 @@ import {useState} from "react";
 import CreateTaskSelector from "@/app/ui/task/CreateTaskSelector";
 import SunIcon from "@/app/assets/SunIcon";
 import {addTask} from "@/utils/state/queries";
-import {useMutation, useQueryClient} from "react-query";
 import {DropdownItem} from "@nextui-org/react";
 import InputRow from "@/app/ui/InputRow";
 
@@ -19,20 +18,10 @@ const initState = {
 }
 
 const CreateTask = ({lists}: CreateTaskProps) => {
-    const queryClient = useQueryClient();
 
     const [active, setActive] = useState(false);
 
     const [task, setTask] = useState(initState);
-
-    const mutation = useMutation({
-        mutationFn: () => {
-            return submitTasks();
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['userTasks']})
-        }
-    });
 
 
     async function submitTasks() {
@@ -48,7 +37,10 @@ const CreateTask = ({lists}: CreateTaskProps) => {
     return <InputRow inputValue={task.title}
                      onInputChange={(e) => setTask(p => ({...p, title: e.target.value}))}
                      isActive={ task?.title?.length > 0 }
-                     onSubmit={() => mutation.mutate()}
+                     onSubmit={
+                        () => {}
+                        //TODO: create task
+                     }
                      placeholders={{active: "Add task", passive: "Ex: Finish Lister styling"}}
     >
         <div className={"flex overflow-hidden min-w-[160px]"}>
