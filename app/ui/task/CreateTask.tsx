@@ -1,9 +1,9 @@
 import {useState} from "react";
 import CreateTaskSelector from "@/app/ui/task/CreateTaskSelector";
 import SunIcon from "@/app/assets/SunIcon";
-import {addTask} from "@/utils/state/queries";
 import {DropdownItem} from "@nextui-org/react";
 import InputRow from "@/app/ui/InputRow";
+import {usePersistence} from "@/utils/state/persistance";
 
 type CreateTaskProps = {
     lists: string[]
@@ -19,6 +19,8 @@ const initState = {
 
 const CreateTask = ({lists}: CreateTaskProps) => {
 
+    const { addTask } = usePersistence();
+
     const [active, setActive] = useState(false);
 
     const [task, setTask] = useState(initState);
@@ -28,7 +30,7 @@ const CreateTask = ({lists}: CreateTaskProps) => {
         if(task.title == "") {
             return;
         }
-        await addTask({title: task.title});
+        addTask(task.title);
         setTask(initState);
     }
 
@@ -37,10 +39,7 @@ const CreateTask = ({lists}: CreateTaskProps) => {
     return <InputRow inputValue={task.title}
                      onInputChange={(e) => setTask(p => ({...p, title: e.target.value}))}
                      isActive={ task?.title?.length > 0 }
-                     onSubmit={
-                        () => {}
-                        //TODO: create task
-                     }
+                     onSubmit={submitTasks}
                      placeholders={{active: "Add task", passive: "Ex: Finish Lister styling"}}
     >
         <div className={"flex overflow-hidden min-w-[160px]"}>

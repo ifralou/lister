@@ -1,6 +1,9 @@
 import {Task} from "@/utils/common/commontypes";
 import {create, StateCreator} from "zustand";
 import Error from "next/error";
+import {createClient} from "@/utils/supabase/client";
+import {PostgrestFilterBuilder} from "@supabase/postgrest-js";
+import {PostgrestError} from "@supabase/supabase-js";
 
 interface ClientState {
     tasks: Task[]
@@ -10,17 +13,20 @@ interface ClientState {
 }
 
 type OK = { type: "ok" }
-type ERROR = { type: "error", error: Error}
+type ERROR = { type: "error", error: PostgrestError}
 type LOADING = { type: "loading"}
 type Status = OK | ERROR | LOADING
 
+const supabase = createClient();
+
+const tasks = "tasks";
 
 interface PushingState {
     status : Status,
     setLoading: () => void;
-    setError: (e: Error) => void;
+    setError: (e: PostgrestError) => void;
     setOk: () => void;
-    synchronizeActions: (clientFunction: () => void, asyncActionPromise: Promise<any>) => void
+    synchronizeActions: (clientFunction: () => void, asyncActionPromise: PostgrestFilterBuilder<any, any, unknown>) => void
 }
 
 const createPushingStateSlice: StateCreator<
@@ -36,10 +42,14 @@ const createPushingStateSlice: StateCreator<
     synchronizeActions: (clientFunction, asyncActionPromise) => {
         get().setLoading();
         clientFunction();
-        asyncActionPromise.then(() => {
-            //Check status codes and so on
-            get().setOk();
-        }).catch((e) => get().setError(e))
+        asyncActionPromise.then((res) => {
+            console.log(res);
+            if(res.error) {
+                get().setError(res.error)
+            } else {
+                get().setOk();
+            }
+        })
     }
 })
 
@@ -70,7 +80,7 @@ const createClientStateSlice: StateCreator<ClientState, [], [], ClientState> = (
 });
 
 interface DataEngine {
-    addTask: (task: Task) => void;
+    addTask: (title: string) => void;
     removeTask: (taskId: number) => void;
     addStep: (step: string, taskId: number) => void;
 }
@@ -79,25 +89,39 @@ interface DataEngine {
 const createDataEngine: StateCreator<
     ClientState & PushingState, [], [], DataEngine
 > = (set, get) => ({
-    addTask: (task: Task) => {
+    addTask: async (title: string) => {
+
+        const task = {
+            id: null,
+            title,
+            steps: [],
+            build_in_lists: [],
+            user_list: null,
+            assignee_id: null,
+            repeat_timestamp: null,
+            due_timestamp: null,
+            remind_timestamp: null
+        };
+
         get().synchronizeActions(
             get().addTaskClient.bind(null, task),
-            //TODO: add supabase handler
-            Promise.resolve()
+            supabase.from(tasks).insert(task)
         )
     },
 
     removeTask: (taskId: number) => {
         get().synchronizeActions(
             get().removeTaskClient.bind(null, taskId),
-            Promise.resolve()
+            supabase.from(tasks).select()
         )
     },
 
     addStep: (step: string, taskId: number) => {
         get().synchronizeActions(
             get().addStepClient.bind(null, step, taskId),
-            Promise.resolve()
+            supabase.rpc("append_step", {
+                id: taskId, step
+            })
         )
     }
 });
@@ -113,7 +137,7 @@ const useDataStore = create<ClientState & PushingState & DataEngine>()((...a) =>
  * Central hook for state app management.
  * Synchronizes app client state and db.
  */
-export function usePersistence() : DataEngine {
+export function usePersistence() : DataEngine & { tasks: Task[] }{
     return useDataStore();
 }
 
