@@ -28,9 +28,9 @@ const TaskPanel = ({task, onPanelClose} : TaskPanelProp) => {
                 </div>
                 <div>
                     {
-                        steps && steps.map(step => <div key={step}>{step}</div>)
+                        steps && steps.map((step, i) => <div key={i}>{step}</div>)
                     }
-                    <CreateStep/>
+                    <CreateStep taskID={task.id}/>
                 </div>
             </div>
         </Card>

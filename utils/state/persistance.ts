@@ -1,15 +1,18 @@
 import {Task} from "@/utils/common/commontypes";
 import {create, StateCreator} from "zustand";
-import Error from "next/error";
+import {v4 as generateUUID} from "uuid"
 import {createClient} from "@/utils/supabase/client";
 import {PostgrestFilterBuilder} from "@supabase/postgrest-js";
 import {PostgrestError} from "@supabase/supabase-js";
+import {UUID} from "crypto";
+import {useEffect} from "react";
 
 interface ClientState {
     tasks: Task[]
+    initStoreClient: (tasks: Task[]) => void;
     addTaskClient: (task: Task) => void;
-    removeTaskClient: (taskId: number) => void;
-    addStepClient: (step: string, taskId: number) => void;
+    removeTaskClient: (taskId: UUID) => void;
+    addStepClient: (step: string, taskId: UUID) => void;
 }
 
 type OK = { type: "ok" }
@@ -38,12 +41,11 @@ const createPushingStateSlice: StateCreator<
     setError: (e) => set((state) => ({...state, status: {type: "error", error: e}})),
     setLoading: () => set((state) => ({...state, status: {type: "loading"}})),
 
-
     synchronizeActions: (clientFunction, asyncActionPromise) => {
         get().setLoading();
         clientFunction();
         asyncActionPromise.then((res) => {
-            console.log(res);
+            console.log("SyncActions: ", res);
             if(res.error) {
                 get().setError(res.error)
             } else {
@@ -54,8 +56,12 @@ const createPushingStateSlice: StateCreator<
 })
 
 
-const createClientStateSlice: StateCreator<ClientState, [], [], ClientState> = (set) => ({
+const createClientStateSlice: StateCreator<ClientState, [], [], ClientState> = (set, get) => ({
     tasks: [],
+
+    initStoreClient: (tasks: Task[]) => set((state) => ({
+            ...state, tasks
+    })),
 
     addTaskClient: (task: Task) => {
         set((state ) => ({
@@ -63,11 +69,11 @@ const createClientStateSlice: StateCreator<ClientState, [], [], ClientState> = (
         }));
     },
 
-    removeTaskClient: (taskId: number) => set((state) => ({
+    removeTaskClient: (taskId: UUID) => set((state) => ({
         ...state, tasks: state.tasks.filter(t => t.id != taskId)
     })),
 
-    addStepClient: (step: string, taskId: number) => set((state) => {
+    addStepClient: (step: string, taskId: UUID) => set((state) => {
         const taskToUpdate = state.tasks.find(t => t.id == taskId) as Task;
         const nonUpdated =  state.tasks.filter(t => t.id != taskId);
         const updatedTask = {...taskToUpdate, steps: [...taskToUpdate.steps, step]};
@@ -80,19 +86,31 @@ const createClientStateSlice: StateCreator<ClientState, [], [], ClientState> = (
 });
 
 interface DataEngine {
+    initStore: () => void;
     addTask: (title: string) => void;
-    removeTask: (taskId: number) => void;
-    addStep: (step: string, taskId: number) => void;
+    removeTask: (taskId: string) => void;
+    addStep: (step: string, taskId: string) => void;
 }
 
 
 const createDataEngine: StateCreator<
     ClientState & PushingState, [], [], DataEngine
 > = (set, get) => ({
+    initStore: async () => {
+        get().setLoading();
+        const {data, error} = await supabase.from("tasks").select();
+        if(error) {
+            get().setError(error);
+        } else {
+            get().initStoreClient(data as Task[]);
+            get().setOk();
+        }
+    },
+
     addTask: async (title: string) => {
 
         const task = {
-            id: null,
+            id: generateUUID(),
             title,
             steps: [],
             build_in_lists: [],
@@ -109,18 +127,19 @@ const createDataEngine: StateCreator<
         )
     },
 
-    removeTask: (taskId: number) => {
+    removeTask: (taskId: string) => {
         get().synchronizeActions(
             get().removeTaskClient.bind(null, taskId),
             supabase.from(tasks).select()
         )
     },
 
-    addStep: (step: string, taskId: number) => {
+    addStep: (step: string, taskId: string) => {
         get().synchronizeActions(
             get().addStepClient.bind(null, step, taskId),
             supabase.rpc("append_step", {
-                id: taskId, step
+                task_id: taskId,
+                step: step
             })
         )
     }
@@ -138,7 +157,13 @@ const useDataStore = create<ClientState & PushingState & DataEngine>()((...a) =>
  * Synchronizes app client state and db.
  */
 export function usePersistence() : DataEngine & { tasks: Task[] }{
-    return useDataStore();
+    const data = useDataStore();
+
+    useEffect(() => {
+        data.initStore()
+    }, []);
+
+    return data;
 }
 
 export function usePushStatus() : Status {

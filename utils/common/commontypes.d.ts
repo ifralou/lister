@@ -3,7 +3,7 @@ import {UUID} from "crypto";
 type LayoutProps = { children: React.ReactNode }
 
 type Task = {
-    id: number | null,
+    id: UUID,
     title: string,
     steps: string[],
     build_in_lists: string[],

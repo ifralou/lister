@@ -1,6 +1,7 @@
 "use client";
 
 import {usePushStatus} from "@/utils/state/persistance";
+import {Button} from "@nextui-org/react";
 
 const PersistStatus = () => {
     const status= usePushStatus();
@@ -9,14 +10,14 @@ const PersistStatus = () => {
         return <div>ERROR OCCURED</div>
     }
 
-    if(status.type == "loading") {
-        return <div>loading...</div>
-    }
 
     return (
-        <div>
-            ok
-        </div>
+        <Button isDisabled isLoading={status.type == "loading"}>
+            {
+                status.type == "loading"?
+                    "Loading" : "Synchronized"
+            }
+        </Button>
     );
 };
 
