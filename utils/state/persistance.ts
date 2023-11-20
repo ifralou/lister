@@ -1,18 +1,25 @@
-import {Task} from "@/utils/common/commontypes";
+import {List, Task} from "@/utils/common/commontypes";
 import {create, StateCreator} from "zustand";
 import {v4 as generateUUID} from "uuid"
 import {createClient} from "@/utils/supabase/client";
 import {PostgrestFilterBuilder} from "@supabase/postgrest-js";
 import {PostgrestError} from "@supabase/supabase-js";
-import {UUID} from "crypto";
 import {useEffect} from "react";
 
 interface ClientState {
     tasks: Task[]
+    lists: List[],
+
     initStoreClient: (tasks: Task[]) => void;
     addTaskClient: (task: Task) => void;
-    removeTaskClient: (taskId: UUID) => void;
-    addStepClient: (step: string, taskId: UUID) => void;
+    removeTaskClient: (taskId: string) => void;
+    addStepClient: (step: string, taskId: string) => void;
+
+    addListClient: (title: string) => void,
+    deleteListClient: (id: string) => void,
+    renameListClient: (title: string, id: string) => void;
+
+    addListToTask: (list_id: string, taskId: string) => void;
 }
 
 type OK = { type: "ok" }
@@ -26,6 +33,7 @@ const tasks = "tasks";
 
 interface PushingState {
     status : Status,
+
     setLoading: () => void;
     setError: (e: PostgrestError) => void;
     setOk: () => void;
@@ -58,6 +66,23 @@ const createPushingStateSlice: StateCreator<
 
 const createClientStateSlice: StateCreator<ClientState, [], [], ClientState> = (set, get) => ({
     tasks: [],
+    lists: [],
+
+    addListClient: (title: string) => {
+
+    },
+
+    deleteListClient: (id: string) => {
+
+    },
+
+    renameListClient: (title: string, id: string) => {
+
+    },
+
+    addListToTask: (list_id: string, taskId: string) => {
+
+    },
 
     initStoreClient: (tasks: Task[]) => set((state) => ({
             ...state, tasks
@@ -69,11 +94,11 @@ const createClientStateSlice: StateCreator<ClientState, [], [], ClientState> = (
         }));
     },
 
-    removeTaskClient: (taskId: UUID) => set((state) => ({
+    removeTaskClient: (taskId: string) => set((state) => ({
         ...state, tasks: state.tasks.filter(t => t.id != taskId)
     })),
 
-    addStepClient: (step: string, taskId: UUID) => set((state) => {
+    addStepClient: (step: string, taskId: string) => set((state) => {
         const taskToUpdate = state.tasks.find(t => t.id == taskId) as Task;
         const nonUpdated =  state.tasks.filter(t => t.id != taskId);
         const updatedTask = {...taskToUpdate, steps: [...taskToUpdate.steps, step]};
@@ -119,7 +144,7 @@ const createDataEngine: StateCreator<
             repeat_timestamp: null,
             due_timestamp: null,
             remind_timestamp: null
-        };
+        } as Task;
 
         get().synchronizeActions(
             get().addTaskClient.bind(null, task),

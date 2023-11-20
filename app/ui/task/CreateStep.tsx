@@ -10,7 +10,10 @@ const CreateStep = ({taskID} : {taskID : string}) => {
         <InputRow inputValue={step}
                   onInputChange={(e) => setStep(e.target.value)}
                   isActive={step.length > 0}
-                  onSubmit={() => engine.addStep(step, taskID)}
+                  onSubmit={() => {
+                      engine.addStep(step, taskID);
+                      setStep("");
+                  }}
                   placeholders={{active: "Add Step", passive: "Ex: buy apples"}}
         />
     );

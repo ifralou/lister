@@ -13,3 +13,8 @@ type Task = {
     due_timestamp: Date | null,
     remind_timestamp: Date | null,
 }
+
+type List = {
+    id: string,
+    title: string
+}
