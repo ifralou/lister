@@ -6,21 +6,7 @@ import {PostgrestFilterBuilder} from "@supabase/postgrest-js";
 import {PostgrestError} from "@supabase/supabase-js";
 import {useEffect} from "react";
 
-interface ClientState {
-    tasks: Task[]
-    lists: List[],
 
-    initStoreClient: (tasks: Task[]) => void;
-    addTaskClient: (task: Task) => void;
-    removeTaskClient: (taskId: string) => void;
-    addStepClient: (step: string, taskId: string) => void;
-
-    addListClient: (title: string) => void,
-    deleteListClient: (id: string) => void,
-    renameListClient: (title: string, id: string) => void;
-
-    addListToTask: (list_id: string, taskId: string) => void;
-}
 
 type OK = { type: "ok" }
 type ERROR = { type: "error", error: PostgrestError}
@@ -63,26 +49,46 @@ const createPushingStateSlice: StateCreator<
     }
 })
 
+interface ClientState {
+    tasks: Task[]
+    lists: List[],
+
+    initStoreClient: (tasks: Task[]) => void;
+    addTaskClient: (task: Task) => void;
+    removeTaskClient: (taskId: string) => void;
+    addStepClient: (step: string, taskId: string) => void;
+
+    addListClient: (title: string) => void,
+    deleteListClient: (id: string) => void,
+    renameListClient: (title: string, id: string) => void;
+
+    addListToTaskClient: (listId: string, taskId: string) => void;
+}
 
 const createClientStateSlice: StateCreator<ClientState, [], [], ClientState> = (set, get) => ({
     tasks: [],
     lists: [],
 
-    addListClient: (title: string) => {
+    addListClient: (title: string) => set((state) => ({
+        ...state, lists: [...state.lists, { id: "", title}]
+    })),
 
-    },
+    deleteListClient: (id: string) => set((state) => (
+        {...state, lists: state.lists.filter(l => l.id !== id)}
+    )),
 
-    deleteListClient: (id: string) => {
+    renameListClient: (title: string, id: string) => set((state) => {
+        const filteredList = state.lists.filter(l => l.id !== id);
+        return {...state, lists: [...filteredList, {id, title}]}
+    }),
 
-    },
+    addListToTaskClient: (listId: string, taskId: string) => set((state) => {
+        const updatedTask = {
+            ...state.tasks.find(t => t.id === taskId), user_list: listId
+        } as Task;
 
-    renameListClient: (title: string, id: string) => {
-
-    },
-
-    addListToTask: (list_id: string, taskId: string) => {
-
-    },
+        return {...state, tasks:[...state.tasks.filter(t => t.id != taskId), updatedTask]}
+    }),
 
     initStoreClient: (tasks: Task[]) => set((state) => ({
             ...state, tasks
@@ -115,12 +121,45 @@ interface DataEngine {
     addTask: (title: string) => void;
     removeTask: (taskId: string) => void;
     addStep: (step: string, taskId: string) => void;
+
+    addList: (title: string) => void,
+    deleteList: (id: string) => void,
+    renameList: (title: string, id: string) => void;
+    addListToTask: (listId: string, taskId: string) => void;
 }
 
 
 const createDataEngine: StateCreator<
     ClientState & PushingState, [], [], DataEngine
 > = (set, get) => ({
+    addList: (title: string) => {
+        get().synchronizeActions(
+            get().addListClient.bind(null, title),
+            supabase.from(tasks).select()
+        )
+    },
+
+    deleteList: (id: string) => {
+        get().synchronizeActions(
+            get().deleteListClient.bind(null, id),
+            supabase.from(tasks).select()
+        )
+    },
+
+    renameList: (title: string, id: string) => {
+        get().synchronizeActions(
+            get().renameListClient.bind(null, title, id),
+            supabase.from(tasks).select()
+        )
+    },
+
+    addListToTask: (listId: string, taskId: string) => {
+        get().synchronizeActions(
+            get().addListToTaskClient.bind(null, listId, taskId),
+            supabase.from(tasks).select()
+        )
+    },
+
     initStore: async () => {
         get().setLoading();
         const {data, error} = await supabase.from("tasks").select();
